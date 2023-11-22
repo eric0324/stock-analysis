@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Ticker, TickerSchema } from './ticker.schema';
 import { ScraperModule } from '../scraper/scraper.module';
 import { TickerRepository } from './ticker.repository';
+import { TickerService } from './ticker.service';
 
 @Module({
     imports: [
@@ -11,6 +12,13 @@ import { TickerRepository } from './ticker.repository';
         ]),
         ScraperModule,
     ],
-    providers: [TickerRepository],
+    providers: [
+        TickerRepository,
+        TickerService,
+    ],
+    exports: [
+        TickerRepository,
+        TickerService,
+    ],
 })
 export class TickerModule {}
