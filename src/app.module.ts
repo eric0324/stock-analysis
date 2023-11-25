@@ -9,12 +9,26 @@ import { TickerModule } from './ticker/ticker.module';
 import { MarketStatsService } from './market-stats/market-stats.service';
 import { TickerService } from './ticker/ticker.service';
 import { ReportModule } from './report/report.module';
+import {MailerModule} from "@nestjs-modules/mailer";
 
 @Module({
     imports: [
         ConfigModule.forRoot(),
         ScheduleModule.forRoot(),
         MongooseModule.forRoot(process.env.MONGODB_URI),
+        MailerModule.forRoot({
+            transport: {
+                service: process.env.NODEMAILER_SERVICE,
+                auth: {
+                    user: process.env.NODEMAILER_USER,
+                    pass: process.env.NODEMAILER_PASS,
+                },
+            },
+            defaults: {
+                from: process.env.NODEMAILER_FROM,
+                to: process.env.NODEMAILER_TO,
+            },
+        }),
         ScraperModule,
         MarketStatsModule,
         TickerModule,

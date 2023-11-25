@@ -1,4 +1,4 @@
-import {Injectable} from '@nestjs/common';
+import {Injectable, Logger} from '@nestjs/common';
 import * as numeral from 'numeral';
 import {TickerRepository} from "../ticker/ticker.repository";
 import {MarketStatsRepository} from "../market-stats/market-stats.repository";
@@ -8,22 +8,34 @@ import { getMarketName, getSectorName } from '../ticker/utils';
 import { Market } from '../ticker/enums';
 
 import * as ExcelJS from 'exceljs';
+import {Cron} from "@nestjs/schedule";
+import {MailerService} from "@nestjs-modules/mailer";
 
 @Injectable()
 export class ReportService {
     constructor(
+        private readonly mailerService: MailerService,
         private readonly marketStatsRepository: MarketStatsRepository,
         private readonly tickerRepository: TickerRepository,
     ) {
     }
 
-    async onApplicationBootstrap() {
-        await this.creatReport();
+    @Cron('0 0 22 * * *')
+    async sendReport(date: string = DateTime.local().toISODate()) {
+        const workbook = await this.generateReport(date);
+        const dataDate = workbook.getWorksheet(1).name.split(' ')[0];
+        const subject = `${dataDate} 盤後報表`;
+        const filename = `${dataDate}.xlsx`;
+        const content = await workbook.xlsx.writeBuffer();
+        const attachments = [{ filename, content }];
+
+        await this.mailerService.sendMail({ subject, attachments })
+            .then(() => Logger.log(`"${subject}" 已寄出`, ReportService.name))
+            .catch((err) => Logger.error(err.message, err.stack, ReportService.name));
     }
 
-    async creatReport(date: string = DateTime.local().toISODate()) {
+    async generateReport(date: string = DateTime.local().toISODate()) {
         const workbook = await this.createWorkbook();
-
         await this.addMarketStatsSheet(workbook, { date });
         await this.addMoneyFlowSheet(workbook, { date, market: Market.TSE });
         await this.addMoneyFlowSheet(workbook, { date, market: Market.OTC });
@@ -33,7 +45,6 @@ export class ReportService {
         await this.addMostActivesSheet(workbook, { date, market: Market.OTC });
         await this.addInstInvestorsTradesSheet(workbook, { date, market: Market.TSE });
         await this.addInstInvestorsTradesSheet(workbook, { date, market: Market.OTC });
-
         return workbook;
     }
 
