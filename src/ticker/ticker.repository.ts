@@ -12,6 +12,18 @@ export class TickerRepository {
         @InjectModel(Ticker.name) private readonly model: Model<TickerDocument>,
     ) {}
 
+    async getTickers(options?: { startDate?: string, endDate?: string }) {
+        const startDate = options?.startDate ?? DateTime.local().toISODate();
+        const endDate = options?.endDate ?? DateTime.local().toISODate();
+
+        return this.model
+            .find({ date: { $gte: startDate, $lte: endDate } })
+            .select({ _id: 0, __v: 0, createdAt: 0 , updatedAt: 0 })
+            .sort({ date: -1, symbol: 1  })
+            .lean()
+            .exec();
+    }
+
     async updateTicker(ticker: Partial<Ticker>) {
         const { date, symbol } = ticker;
         return this.model.updateOne({ date, symbol }, ticker, { upsert: true });

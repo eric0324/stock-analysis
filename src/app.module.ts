@@ -10,6 +10,8 @@ import { MarketStatsService } from './market-stats/market-stats.service';
 import { TickerService } from './ticker/ticker.service';
 import { ReportModule } from './report/report.module';
 import {MailerModule} from "@nestjs-modules/mailer";
+import { ScreenerModule } from './screener/screener.module';
+import {LineNotifyModule} from "nest-line-notify";
 
 @Module({
     imports: [
@@ -29,10 +31,14 @@ import {MailerModule} from "@nestjs-modules/mailer";
                 to: process.env.NODEMAILER_TO,
             },
         }),
+        LineNotifyModule.forRoot({
+            accessToken: process.env.LINE_NOTIFY_ACCESS_TOKEN,
+        }),
         ScraperModule,
         MarketStatsModule,
         TickerModule,
         ReportModule,
+        ScreenerModule,
     ]
 })
 export class AppModule implements OnApplicationBootstrap {

@@ -28,10 +28,6 @@ export class ReportService {
         const filename = `${dataDate}.xlsx`;
         const content = await workbook.xlsx.writeBuffer();
         const attachments = [{ filename, content }];
-
-        await this.mailerService.sendMail({ subject, attachments })
-            .then(() => Logger.log(`"${subject}" 已寄出`, ReportService.name))
-            .catch((err) => Logger.error(err.message, err.stack, ReportService.name));
     }
 
     async generateReport(date: string = DateTime.local().toISODate()) {
