@@ -12,7 +12,7 @@ export class ScreenerService {
         @InjectLineNotify() private readonly lineNotify: LineNotify,
     ) {}
 
-    @Cron('*/30 * * * * *')
+    @Cron('0 30 22 * * *')
     async sendSelection(date: string = DateTime.local().toISODate()) {
         const { name, tickers, date: dataDate } = await this.selectNew20DayHighs({ date });
         const message = [''].concat([
